@@ -46,10 +46,10 @@ OPENAI_API_KEY=$(cat "$FILE_OPENAI_API_KEY")
 if [ ! -f "$FILE_LOCK" ]; then
     # Start recording
     timestamp=$(date +%s)
-    audio_file="/tmp/supertinywhisper_recording_${timestamp}.wav"
+    audio_file="/tmp/supertinywhisper_recording_${timestamp}.mp3"
 
     echo "$audio_file" > "$FILE_LOCK"
-    ffmpeg -f pulse -i default -y "$audio_file" 2>/dev/null &
+    ffmpeg -f pulse -i default -ar 16000 -ac 1 -acodec mp3 -ab 64k -y "$audio_file" 2>/dev/null &
     echo $! > "$FILE_PID"
 
     text_type "$MSG_RECORDING $MSG_RECORDING_STOP"
