@@ -15,7 +15,7 @@ MSG_TRANSCRIBING="Transcribing..."
 MSG_TRANSCRIBING_LENGTH=${#MSG_TRANSCRIBING}
 
 text_type() {
-    sleep 0.1  # Let window focus settle
+    sleep 0.1 # Let window focus settle
     xdotool type --delay $TEXT_TYPE_DELAY "$1"
 }
 
@@ -33,7 +33,7 @@ transcribe_audio_file() {
         -F model="gpt-4o-transcribe"
     )
 }
-ecord
+
 # Load OpenAI API key from config file
 if [ ! -f "$FILE_OPENAI_API_KEY" ]; then
     text_type "Failed with error: \"Please create $FILE_OPENAI_API_KEY with your OpenAI API key\"."
