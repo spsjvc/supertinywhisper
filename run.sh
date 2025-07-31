@@ -1,5 +1,7 @@
 #!/bin/bash
 
+DIR_SCRIPT="$(realpath "$(dirname "$0")")"
+
 FILE_LOCK="/tmp/supertinywhisper.lock"
 FILE_PID="/tmp/supertinywhisper.pid"
 FILE_OPENAI_API_KEY="$HOME/.config/supertinywhisper/openai_api_key"
@@ -90,6 +92,9 @@ transcription=$(echo "$api_response" | jq -r ".text")
 transcription_error=$(echo "$api_response" | jq -r ".error.message")
 
 if [ -n "$transcription" ]; then
+    # post-process transcription
+    transcription=$(echo "$transcription" | "$DIR_SCRIPT/dist/tag-files")
+
     text_clear $MSG_TRANSCRIBING_LENGTH
     text_type "$transcription"
     exit 0

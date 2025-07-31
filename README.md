@@ -10,3 +10,12 @@ https://github.com/user-attachments/assets/8b8ffe86-95b7-4521-8544-cff7dbdd795c
 - [curl](https://curl.se) - openai api calling
 - [jq](https://jqlang.github.io/jq) - json processing
 - [xdotool](https://github.com/jordansissel/xdotool) - keyboard automation on X11
+- [go](https://golang.org) - building go components
+
+## Building
+
+Compile the Go binaries to the `dist/` folder:
+
+```bash
+go build -o dist tag-files.go
+```
