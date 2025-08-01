@@ -14,8 +14,8 @@ https://github.com/user-attachments/assets/8b8ffe86-95b7-4521-8544-cff7dbdd795c
 
 ## Building
 
-Compile the Go binaries to the `dist/` folder:
+Compile the Go binaries to the `bin/` folder:
 
 ```bash
-go build -o dist tag-files.go
+go build -o bin/ cmd/tag-files.go
 ```
