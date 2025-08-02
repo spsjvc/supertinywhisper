@@ -30,7 +30,7 @@ transcribe_audio_file() {
         -H "Authorization: Bearer $OPENAI_API_KEY" \
         -H "Content-Type: multipart/form-data" \
         -F file="@$1" \
-        -F model="gpt-4o-transcribe"
+        -F model="gpt-4o-mini-transcribe"
     )
 }
 
