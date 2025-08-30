@@ -4,24 +4,30 @@ FILE_LOCK="/tmp/supertinywhisper.lock"
 FILE_PID="/tmp/supertinywhisper.pid"
 FILE_OPENAI_API_KEY="$HOME/.config/supertinywhisper/openai_api_key"
 
-TEXT_TYPE_DELAY=30
-TEXT_CLEAR_DELAY=10
+TEXT_TYPE_DELAY=1
+TEXT_CLEAR_DELAY=1
 
 MSG_RECORDING="Recording..."
-MSG_RECORDING_LENGTH=${#MSG_RECORDING}
+MSG_RECORDING_WORDS=1
 MSG_RECORDING_STOP="Press once again to stop."
-MSG_RECORDING_STOP_LENGTH=${#MSG_RECORDING_STOP}
+MSG_RECORDING_STOP_WORDS=5
 MSG_TRANSCRIBING="Transcribing..."
-MSG_TRANSCRIBING_LENGTH=${#MSG_TRANSCRIBING}
+MSG_TRANSCRIBING_WORDS=1
 
 text_type() {
-    sleep 0.1 # Let window focus settle
+    sleep 0.2 # Let window focus settle
     xdotool type --delay $TEXT_TYPE_DELAY "$1"
 }
 
 text_clear() {
     for ((i = 0; i < $1; i++)); do
         xdotool key --delay $TEXT_CLEAR_DELAY BackSpace
+    done
+}
+
+text_clear_words() {
+    for ((i = 0; i < $1; i++)); do
+        xdotool key --delay $TEXT_CLEAR_DELAY ctrl+BackSpace
     done
 }
 
@@ -75,12 +81,12 @@ rm -f "$FILE_LOCK"
 sleep 0.5
 
 if [ ! -f "$audio_file" ]; then
-    text_clear $MSG_RECORDING_STOP_LENGTH
+    text_clear_words $MSG_RECORDING_STOP_WORDS
     text_type "Failed with error \"no audio file\"."
     exit 1
 fi
 
-text_clear $((MSG_RECORDING_LENGTH + 1 + MSG_RECORDING_STOP_LENGTH))
+text_clear_words $((MSG_RECORDING_WORDS + MSG_RECORDING_STOP_WORDS))
 text_type $MSG_TRANSCRIBING
 
 api_response=$(transcribe_audio_file "$audio_file")
@@ -90,7 +96,7 @@ transcription=$(echo "$api_response" | jq -r ".text")
 transcription_error=$(echo "$api_response" | jq -r ".error.message")
 
 if [ -n "$transcription" ]; then
-    text_clear $MSG_TRANSCRIBING_LENGTH
+    text_clear_words $MSG_TRANSCRIBING_WORDS
     text_type "$transcription"
     exit 0
 elif [ -n "$transcription_error" ]; then
