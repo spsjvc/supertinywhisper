@@ -1,7 +1,6 @@
 #!/bin/bash
 
-FILE_LOCK="/tmp/supertinywhisper.lock"
-FILE_PID="/tmp/supertinywhisper.pid"
+FILE_LOCK="/tmp/supertinywhisper-lock.json"
 FILE_OPENAI_API_KEY="$HOME/.config/supertinywhisper/openai_api_key"
 
 TEXT_TYPE_DELAY=1
@@ -50,31 +49,29 @@ OPENAI_API_KEY=$(cat "$FILE_OPENAI_API_KEY")
 
 # Check for a lockfile (recording in progress)
 if [ ! -f "$FILE_LOCK" ]; then
-    # Start recording
     timestamp=$(date +%s)
     audio_file="/tmp/supertinywhisper_recording_${timestamp}.mp3"
 
-    echo "$audio_file" > "$FILE_LOCK"
+    # Start recording
     ffmpeg -f pulse -i default -ar 16000 -ac 1 -acodec mp3 -ab 64k -y "$audio_file" 2>/dev/null &
-    echo $! > "$FILE_PID"
+    ffmpeg_pid=$!
+
+    # Create the json lockfile
+    echo "{ \"ffmpeg_pid\": $ffmpeg_pid, \"recording_file\": \"$audio_file\" }" > "$FILE_LOCK"
 
     text_type "$MSG_RECORDING $MSG_RECORDING_STOP"
     exit 0
 fi
 
 # Stop recording (kill ffmpeg and wait for it to finish)
-if [ -f "$FILE_PID" ]; then
-    ffmpeg_pid=$(cat "$FILE_PID")
+ffmpeg_pid=$(cat "$FILE_LOCK" | jq -r ".ffmpeg_pid")
+audio_file=$(cat "$FILE_LOCK" | jq -r ".recording_file")
 
-    if kill -TERM $ffmpeg_pid 2>/dev/null; then
-        wait $ffmpeg_pid 2>/dev/null
-    fi
-
-    rm -f "$FILE_PID"
+if kill -TERM $ffmpeg_pid 2>/dev/null; then
+    wait $ffmpeg_pid 2>/dev/null
 fi
 
 # Remove the lockfile
-audio_file=$(cat "$FILE_LOCK")
 rm -f "$FILE_LOCK"
 
 # Give ffmpeg time to finish writing the file
