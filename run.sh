@@ -57,7 +57,7 @@ if [ ! -f "$FILE_LOCK" ]; then
     ffmpeg_pid=$!
 
     # Create the json lockfile
-    echo "{ \"ffmpeg_pid\": $ffmpeg_pid, \"recording_file\": \"$audio_file\" }" > "$FILE_LOCK"
+    echo "{ \"ffmpeg_pid\": $ffmpeg_pid, \"recording_file\": \"$audio_file\", \"recording_started_at\": $timestamp }" > "$FILE_LOCK"
 
     text_type "$MSG_RECORDING $MSG_RECORDING_STOP"
     exit 0
@@ -66,6 +66,8 @@ fi
 # Stop recording (kill ffmpeg and wait for it to finish)
 ffmpeg_pid=$(cat "$FILE_LOCK" | jq -r ".ffmpeg_pid")
 audio_file=$(cat "$FILE_LOCK" | jq -r ".recording_file")
+recording_started_at=$(cat "$FILE_LOCK" | jq -r ".recording_started_at")
+recording_duration=$(($(date +%s) - recording_started_at))
 
 if kill -TERM $ffmpeg_pid 2>/dev/null; then
     wait $ffmpeg_pid 2>/dev/null
