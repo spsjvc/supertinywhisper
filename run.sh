@@ -49,7 +49,7 @@ OPENAI_API_KEY=$(cat "$FILE_OPENAI_API_KEY")
 
 # Check for a lockfile (recording in progress)
 if [ ! -f "$FILE_LOCK" ]; then
-    recording_started_at=$(date +%s)
+    recording_started_at=$(date +%s%3N)
     recording_file="/tmp/supertinywhisper_recording_${recording_started_at}.mp3"
 
     # Start recording
@@ -72,7 +72,7 @@ fi
 
 recording_file=$(cat "$FILE_LOCK" | jq -r ".recording_file")
 recording_started_at=$(cat "$FILE_LOCK" | jq -r ".recording_started_at")
-recording_duration=$(($(date +%s) - recording_started_at))
+recording_duration_ms=$(($(date +%s%3N) - recording_started_at))
 
 # Remove the lockfile
 rm -f "$FILE_LOCK"
