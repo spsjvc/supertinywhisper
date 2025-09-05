@@ -49,15 +49,15 @@ OPENAI_API_KEY=$(cat "$FILE_OPENAI_API_KEY")
 
 # Check for a lockfile (recording in progress)
 if [ ! -f "$FILE_LOCK" ]; then
-    timestamp=$(date +%s)
-    audio_file="/tmp/supertinywhisper_recording_${timestamp}.mp3"
+    recording_started_at=$(date +%s)
+    recording_file="/tmp/supertinywhisper_recording_${recording_started_at}.mp3"
 
     # Start recording
-    ffmpeg -f pulse -i default -ar 16000 -ac 1 -acodec mp3 -ab 64k -y "$audio_file" 2>/dev/null &
+    ffmpeg -f pulse -i default -ar 16000 -ac 1 -acodec mp3 -ab 64k -y "$recording_file" 2>/dev/null &
     ffmpeg_pid=$!
 
     # Create the json lockfile
-    echo "{ \"ffmpeg_pid\": $ffmpeg_pid, \"recording_file\": \"$audio_file\", \"recording_started_at\": $timestamp }" > "$FILE_LOCK"
+    echo "{ \"ffmpeg_pid\": $ffmpeg_pid, \"recording_file\": \"$recording_file\", \"recording_started_at\": $recording_started_at }" > "$FILE_LOCK"
 
     text_type "$MSG_RECORDING $MSG_RECORDING_STOP"
     exit 0
@@ -65,27 +65,28 @@ fi
 
 # Stop recording (kill ffmpeg and wait for it to finish)
 ffmpeg_pid=$(cat "$FILE_LOCK" | jq -r ".ffmpeg_pid")
-audio_file=$(cat "$FILE_LOCK" | jq -r ".recording_file")
-recording_started_at=$(cat "$FILE_LOCK" | jq -r ".recording_started_at")
-recording_duration=$(($(date +%s) - recording_started_at))
 
 if kill -TERM $ffmpeg_pid 2>/dev/null; then
     wait $ffmpeg_pid 2>/dev/null
 fi
 
+recording_file=$(cat "$FILE_LOCK" | jq -r ".recording_file")
+recording_started_at=$(cat "$FILE_LOCK" | jq -r ".recording_started_at")
+recording_duration=$(($(date +%s) - recording_started_at))
+
 # Remove the lockfile
 rm -f "$FILE_LOCK"
 
 # Wait for ffmpeg to finish writing the file
-while [ ! -s "$audio_file" ]; do
+while [ ! -s "$recording_file" ]; do
     sleep 0.05
 done
 
 text_clear_words $((MSG_RECORDING_WORDS + MSG_RECORDING_STOP_WORDS))
 text_type $MSG_TRANSCRIBING
 
-api_response=$(transcribe_audio_file "$audio_file")
-rm -f "$audio_file"
+api_response=$(transcribe_audio_file "$recording_file")
+rm -f "$recording_file"
 
 transcription=$(echo "$api_response" | jq -r ".text")
 transcription_error=$(echo "$api_response" | jq -r ".error.message")
