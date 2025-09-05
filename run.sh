@@ -74,14 +74,10 @@ fi
 # Remove the lockfile
 rm -f "$FILE_LOCK"
 
-# Give ffmpeg time to finish writing the file
-sleep 0.5
-
-if [ ! -f "$audio_file" ]; then
-    text_clear_words $MSG_RECORDING_STOP_WORDS
-    text_type "Failed with error \"no audio file\"."
-    exit 1
-fi
+# Wait for ffmpeg to finish writing the file
+while [ ! -s "$audio_file" ]; do
+    sleep 0.05
+done
 
 text_clear_words $((MSG_RECORDING_WORDS + MSG_RECORDING_STOP_WORDS))
 text_type $MSG_TRANSCRIBING
