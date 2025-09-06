@@ -50,10 +50,23 @@ OPENAI_API_KEY=$(cat "$FILE_OPENAI_API_KEY")
 # Check for a lockfile (recording in progress)
 if [ ! -f "$FILE_LOCK" ]; then
     recording_started_at=$(date +%s%3N)
-    recording_file="/tmp/supertinywhisper_recording_${recording_started_at}.mp3"
+    recording_file="/tmp/supertinywhisper_recording_${recording_started_at}.ogg"
 
-    # Start recording
-    ffmpeg -f pulse -i default -ar 16000 -ac 1 -acodec mp3 -ab 64k -y "$recording_file" 2>/dev/null &
+    # Start recording with options optimized for speech:
+    #   -f pulse                        PulseAudio input format
+    #   -i default                      System default audio input device
+    #   -c:a libopus -application voip  Opus codec optimized for voice applications
+    #   -ac 1                           Single channel
+    #   -ar 16000                       16kHz sample rate
+    #   -b:a 32k -vbr on                32 kbps target bitrate with variable bitrate enabled
+    ffmpeg \
+        -f pulse \
+        -i default \
+        -c:a libopus -application voip \
+        -ac 1 \
+        -ar 16000 \
+        -b:a 32k -vbr on \
+        "$recording_file" &
     ffmpeg_pid=$!
 
     # Create the json lockfile
