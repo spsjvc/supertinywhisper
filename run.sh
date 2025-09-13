@@ -4,7 +4,7 @@ FILE_LOCK="/tmp/supertinywhisper-lock.json"
 FILE_OPENAI_API_KEY="$HOME/.config/supertinywhisper/openai_api_key"
 
 TEXT_TYPE_DELAY=1
-TEXT_CLEAR_DELAY=1
+TEXT_CLEAR_DELAY=2.5
 
 MSG_RECORDING="Recording..."
 MSG_RECORDING_WORDS=1
@@ -24,9 +24,28 @@ text_clear() {
     done
 }
 
+should_use_alt_backspace() {
+    window_class_using_alt_backspace=("com.mitchellh.ghostty" "kitty")
+    window_class_active=$(xdotool getactivewindow getwindowclassname)
+
+    for window_class in "${window_class_using_alt_backspace[@]}"; do
+        if [[ "$window_class_active" == "$window_class" ]]; then
+            return 0
+        fi
+    done
+
+    return 1
+}
+
 text_clear_words() {
+    if should_use_alt_backspace; then
+        key_combo="alt+BackSpace"
+    else
+        key_combo="ctrl+BackSpace"
+    fi
+
     for ((i = 0; i < $1; i++)); do
-        xdotool key --delay $TEXT_CLEAR_DELAY ctrl+BackSpace
+        xdotool key --delay $TEXT_CLEAR_DELAY "$key_combo"
     done
 }
 
