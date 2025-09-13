@@ -6,12 +6,13 @@ FILE_OPENAI_API_KEY="$HOME/.config/supertinywhisper/openai_api_key"
 TEXT_TYPE_DELAY=1
 TEXT_CLEAR_DELAY=1
 
+# Some applications count the ellipsis (...) as a separate word
 MSG_RECORDING="Recording..."
-MSG_RECORDING_WORDS=1
+MSG_RECORDING_WORDS=2
 MSG_RECORDING_STOP="Press once again to stop."
-MSG_RECORDING_STOP_WORDS=5
+MSG_RECORDING_STOP_WORDS=6
 MSG_TRANSCRIBING="Transcribing..."
-MSG_TRANSCRIBING_WORDS=1
+MSG_TRANSCRIBING_WORDS=2
 
 text_type() {
     sleep 0.2 # Let window focus settle
