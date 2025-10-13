@@ -6,7 +6,7 @@ FILE_OPENAI_API_KEY="$HOME/.config/supertinywhisper/openai_api_key"
 notify() {
     # Send a notification via notify-send if available
     if command -v notify-send &> /dev/null; then
-        notify-send --replace-id="69420" --icon=none "supertinywhisper" "$1"
+        notify-send --replace-id="69420" "supertinywhisper" "$1"
     fi
 }
 
