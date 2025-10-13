@@ -3,50 +3,15 @@
 FILE_LOCK="/tmp/supertinywhisper-lock.json"
 FILE_OPENAI_API_KEY="$HOME/.config/supertinywhisper/openai_api_key"
 
-TEXT_TYPE_DELAY=1
-TEXT_CLEAR_DELAY=2.5
-
-MSG_RECORDING="Recording..."
-MSG_RECORDING_WORDS=1
-MSG_RECORDING_STOP="Press once again to stop."
-MSG_RECORDING_STOP_WORDS=5
-MSG_TRANSCRIBING="Transcribing..."
-MSG_TRANSCRIBING_WORDS=1
+notify() {
+    # Send a notification via notify-send if available
+    if command -v notify-send &> /dev/null; then
+        notify-send --replace-id="69420" --icon=none "supertinywhisper" "$1"
+    fi
+}
 
 text_type() {
-    sleep 0.2 # Let window focus settle
-    xdotool type --delay $TEXT_TYPE_DELAY "$1"
-}
-
-text_clear() {
-    for ((i = 0; i < $1; i++)); do
-        xdotool key --delay $TEXT_CLEAR_DELAY BackSpace
-    done
-}
-
-should_use_alt_backspace() {
-    window_class_using_alt_backspace=("com.mitchellh.ghostty" "kitty")
-    window_class_active=$(xdotool getactivewindow getwindowclassname)
-
-    for window_class in "${window_class_using_alt_backspace[@]}"; do
-        if [[ "$window_class_active" == "$window_class" ]]; then
-            return 0
-        fi
-    done
-
-    return 1
-}
-
-text_clear_words() {
-    if should_use_alt_backspace; then
-        key_combo="alt+BackSpace"
-    else
-        key_combo="ctrl+BackSpace"
-    fi
-
-    for ((i = 0; i < $1; i++)); do
-        xdotool key --delay $TEXT_CLEAR_DELAY "$key_combo"
-    done
+    xdotool type --delay 1 "$1"
 }
 
 transcribe_audio_file() {
@@ -60,7 +25,7 @@ transcribe_audio_file() {
 
 # Load OpenAI API key from config file
 if [ ! -f "$FILE_OPENAI_API_KEY" ]; then
-    text_type "Failed with error: \"Please create $FILE_OPENAI_API_KEY with your OpenAI API key\"."
+    notify "Error: Please create $FILE_OPENAI_API_KEY with your OpenAI API key."
     exit 1
 fi
 
@@ -91,7 +56,7 @@ if [ ! -f "$FILE_LOCK" ]; then
     # Create the json lockfile
     echo "{ \"ffmpeg_pid\": $ffmpeg_pid, \"recording_file\": \"$recording_file\", \"recording_started_at\": $recording_started_at }" > "$FILE_LOCK"
 
-    text_type "$MSG_RECORDING $MSG_RECORDING_STOP"
+    notify "Recording... Press once again to stop."
     exit 0
 fi
 
@@ -114,23 +79,22 @@ while [ ! -s "$recording_file" ]; do
     sleep 0.05
 done
 
-text_clear_words $((MSG_RECORDING_WORDS + MSG_RECORDING_STOP_WORDS))
-text_type $MSG_TRANSCRIBING
-
+notify "Recording... Transcribing..."
 api_response=$(transcribe_audio_file "$recording_file")
+notify "Recording... Transcribing... Done."
+
 rm -f "$recording_file"
 
 transcription=$(echo "$api_response" | jq -r ".text")
 transcription_error=$(echo "$api_response" | jq -r ".error.message")
 
 if [ -n "$transcription" ]; then
-    text_clear_words $MSG_TRANSCRIBING_WORDS
     text_type "$transcription"
     exit 0
 elif [ -n "$transcription_error" ]; then
-    text_type " Failed with error \"$transcription_error\"."
+    notify "Error: $transcription_error."
     exit 1
 else
-    text_type " Failed with an unknown error."
+    notify "Error: Unknown error."
     exit 1
 fi
