@@ -14,14 +14,19 @@ text_type() {
     xdotool type --delay 1 "$1"
 }
 
+read_lockfile_value() {
+    cat "$FILE_LOCK" | jq -r ".$1"
+}
+
 stop_recording() {
-    ffmpeg_pid=$(cat "$FILE_LOCK" | jq -r ".ffmpeg_pid")
+    ffmpeg_pid=$(read_lockfile_value "ffmpeg_pid")
 
     # Kill ffmpeg and wait for it to finish
     if kill -TERM $ffmpeg_pid 2>/dev/null; then
         wait $ffmpeg_pid 2>/dev/null
     fi
 }
+
 
 transcribe_audio_file() {
     echo $(curl -s https://api.openai.com/v1/audio/transcriptions \
@@ -45,7 +50,7 @@ if [ "$1" = "--cancel" ]; then
     if [ -f "$FILE_LOCK" ]; then
         stop_recording
 
-        recording_file=$(cat "$FILE_LOCK" | jq -r ".recording_file")
+        recording_file=$(read_lockfile_value "recording_file")
 
         rm -f "$FILE_LOCK"
         rm -f "$recording_file"
@@ -87,8 +92,8 @@ fi
 
 stop_recording
 
-recording_file=$(cat "$FILE_LOCK" | jq -r ".recording_file")
-recording_started_at=$(cat "$FILE_LOCK" | jq -r ".recording_started_at")
+recording_file=$(read_lockfile_value "recording_file")
+recording_started_at=$(read_lockfile_value "recording_started_at")
 recording_duration_ms=$(($(date +%s%3N) - recording_started_at))
 
 # Remove the lockfile
