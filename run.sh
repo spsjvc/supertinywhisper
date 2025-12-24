@@ -31,6 +31,26 @@ fi
 
 OPENAI_API_KEY=$(cat "$FILE_OPENAI_API_KEY")
 
+# Handle cancellation
+if [ "$1" = "--cancel" ]; then
+    if [ -f "$FILE_LOCK" ]; then
+        ffmpeg_pid=$(cat "$FILE_LOCK" | jq -r ".ffmpeg_pid")
+
+        if kill -TERM $ffmpeg_pid 2>/dev/null; then
+            wait $ffmpeg_pid 2>/dev/null
+        fi
+
+        recording_file=$(cat "$FILE_LOCK" | jq -r ".recording_file")
+
+        rm -f "$FILE_LOCK"
+        rm -f "$recording_file"
+
+        notify "Recording... Cancelled."
+    fi
+
+    exit 0
+fi
+
 # Check for a lockfile (recording in progress)
 if [ ! -f "$FILE_LOCK" ]; then
     recording_started_at=$(date +%s%3N)
