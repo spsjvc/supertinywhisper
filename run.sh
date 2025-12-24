@@ -25,8 +25,14 @@ stop_recording() {
     if kill -TERM $ffmpeg_pid 2>/dev/null; then
         wait $ffmpeg_pid 2>/dev/null
     fi
-}
 
+    recording_file=$(read_lockfile_value "recording_file")
+
+    # Wait for ffmpeg to finish writing the file
+    while [ ! -s "$recording_file" ]; do
+        sleep 0.05
+    done
+}
 
 transcribe_audio_file() {
     echo $(curl -s https://api.openai.com/v1/audio/transcriptions \
@@ -98,11 +104,6 @@ recording_duration_ms=$(($(date +%s%3N) - recording_started_at))
 
 # Remove the lockfile
 rm -f "$FILE_LOCK"
-
-# Wait for ffmpeg to finish writing the file
-while [ ! -s "$recording_file" ]; do
-    sleep 0.05
-done
 
 notify "Recording... Transcribing..."
 api_response=$(transcribe_audio_file "$recording_file")
