@@ -14,6 +14,15 @@ text_type() {
     xdotool type --delay 1 "$1"
 }
 
+stop_recording() {
+    ffmpeg_pid=$(cat "$FILE_LOCK" | jq -r ".ffmpeg_pid")
+
+    # Kill ffmpeg and wait for it to finish
+    if kill -TERM $ffmpeg_pid 2>/dev/null; then
+        wait $ffmpeg_pid 2>/dev/null
+    fi
+}
+
 transcribe_audio_file() {
     echo $(curl -s https://api.openai.com/v1/audio/transcriptions \
         -H "Authorization: Bearer $OPENAI_API_KEY" \
@@ -34,11 +43,7 @@ OPENAI_API_KEY=$(cat "$FILE_OPENAI_API_KEY")
 # Handle cancellation
 if [ "$1" = "--cancel" ]; then
     if [ -f "$FILE_LOCK" ]; then
-        ffmpeg_pid=$(cat "$FILE_LOCK" | jq -r ".ffmpeg_pid")
-
-        if kill -TERM $ffmpeg_pid 2>/dev/null; then
-            wait $ffmpeg_pid 2>/dev/null
-        fi
+        stop_recording
 
         recording_file=$(cat "$FILE_LOCK" | jq -r ".recording_file")
 
@@ -80,12 +85,7 @@ if [ ! -f "$FILE_LOCK" ]; then
     exit 0
 fi
 
-# Stop recording (kill ffmpeg and wait for it to finish)
-ffmpeg_pid=$(cat "$FILE_LOCK" | jq -r ".ffmpeg_pid")
-
-if kill -TERM $ffmpeg_pid 2>/dev/null; then
-    wait $ffmpeg_pid 2>/dev/null
-fi
+stop_recording
 
 recording_file=$(cat "$FILE_LOCK" | jq -r ".recording_file")
 recording_started_at=$(cat "$FILE_LOCK" | jq -r ".recording_started_at")
