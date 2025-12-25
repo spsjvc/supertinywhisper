@@ -34,6 +34,11 @@ stop_recording() {
     done
 }
 
+clean_up() {
+    recording_file=$(read_lockfile_value "recording_file")
+    rm -f "$FILE_LOCK" "$recording_file"
+}
+
 transcribe_audio_file() {
     echo $(curl -s https://api.openai.com/v1/audio/transcriptions \
         -H "Authorization: Bearer $OPENAI_API_KEY" \
@@ -54,14 +59,10 @@ OPENAI_API_KEY=$(cat "$FILE_OPENAI_API_KEY")
 # Handle cancellation
 if [ "$1" = "--cancel" ]; then
     if [ -f "$FILE_LOCK" ]; then
-        stop_recording
-
-        recording_file=$(read_lockfile_value "recording_file")
-
-        rm -f "$FILE_LOCK"
-        rm -f "$recording_file"
-
         notify "Recording... Cancelled."
+
+        stop_recording
+        clean_up
     fi
 
     exit 0
@@ -102,14 +103,11 @@ recording_file=$(read_lockfile_value "recording_file")
 recording_started_at=$(read_lockfile_value "recording_started_at")
 recording_duration_ms=$(($(date +%s%3N) - recording_started_at))
 
-# Remove the lockfile
-rm -f "$FILE_LOCK"
-
 notify "Recording... Transcribing..."
 api_response=$(transcribe_audio_file "$recording_file")
 notify "Recording... Transcribing... Done."
 
-rm -f "$recording_file"
+clean_up
 
 transcription=$(echo "$api_response" | jq -r ".text")
 transcription_error=$(echo "$api_response" | jq -r ".error.message")
