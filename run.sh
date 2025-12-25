@@ -102,10 +102,11 @@ recording_stop
 recording_file=$(read_lockfile_value "recording_file")
 recording_started_at=$(read_lockfile_value "recording_started_at")
 recording_duration_ms=$(($(date +%s%3N) - recording_started_at))
+recording_duration_s=$((recording_duration_ms / 1000))
 
-notify "Recording... Transcribing..."
+notify "Recording... Transcribing ~${recording_duration_s}s..."
 api_response=$(transcribe_audio_file "$recording_file")
-notify "Recording... Transcribing... Done."
+notify "Recording... Transcribing ~${recording_duration_s}s... Done."
 
 recording_clean_up
 
