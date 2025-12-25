@@ -18,7 +18,7 @@ read_lockfile_value() {
     cat "$FILE_LOCK" | jq -r ".$1"
 }
 
-stop_recording() {
+recording_stop() {
     ffmpeg_pid=$(read_lockfile_value "ffmpeg_pid")
 
     # Kill ffmpeg and wait for it to finish
@@ -34,7 +34,7 @@ stop_recording() {
     done
 }
 
-clean_up() {
+recording_clean_up() {
     recording_file=$(read_lockfile_value "recording_file")
     rm -f "$FILE_LOCK" "$recording_file"
 }
@@ -61,8 +61,8 @@ if [ "$1" = "--cancel" ]; then
     if [ -f "$FILE_LOCK" ]; then
         notify "Recording... Cancelled."
 
-        stop_recording
-        clean_up
+        recording_stop
+        recording_clean_up
     fi
 
     exit 0
@@ -97,7 +97,7 @@ if [ ! -f "$FILE_LOCK" ]; then
     exit 0
 fi
 
-stop_recording
+recording_stop
 
 recording_file=$(read_lockfile_value "recording_file")
 recording_started_at=$(read_lockfile_value "recording_started_at")
@@ -107,7 +107,7 @@ notify "Recording... Transcribing..."
 api_response=$(transcribe_audio_file "$recording_file")
 notify "Recording... Transcribing... Done."
 
-clean_up
+recording_clean_up
 
 transcription=$(echo "$api_response" | jq -r ".text")
 transcription_error=$(echo "$api_response" | jq -r ".error.message")
