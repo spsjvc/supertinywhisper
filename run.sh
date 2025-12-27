@@ -3,6 +3,8 @@
 FILE_LOCK="/tmp/supertinywhisper-lock.json"
 FILE_OPENAI_API_KEY="$HOME/.config/supertinywhisper/openai_api_key"
 
+USE_STDOUT=false
+
 notify() {
     # Send a notification via notify-send if available
     if command -v notify-send &> /dev/null; then
@@ -55,6 +57,15 @@ if [ ! -f "$FILE_OPENAI_API_KEY" ]; then
 fi
 
 OPENAI_API_KEY=$(cat "$FILE_OPENAI_API_KEY")
+
+# Parse flags
+for arg in "$@"; do
+    case $arg in
+        --stdout)
+            USE_STDOUT=true
+            ;;
+    esac
+done
 
 # Handle cancellation
 if [ "$1" = "--cancel" ]; then
@@ -114,7 +125,11 @@ transcription=$(echo "$api_response" | jq -r ".text")
 transcription_error=$(echo "$api_response" | jq -r ".error.message")
 
 if [ -n "$transcription" ]; then
-    text_type "$transcription"
+    if [ "$USE_STDOUT" = true ]; then
+        echo "$transcription"
+    else
+        text_type "$transcription"
+    fi
     exit 0
 elif [ -n "$transcription_error" ]; then
     notify "Error: $transcription_error."
