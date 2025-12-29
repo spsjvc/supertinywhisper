@@ -2,7 +2,7 @@
 
 A super tiny speech-to-text tool for Linux.
 
-It's written in a few lines of Bash, and built with common tools you likely already have installed on your computer.
+It's written in a few lines of Bash, and built with common tools you likely already have installed.
 
 ## How it Works
 
@@ -18,3 +18,14 @@ For best experience, bind it to a global keyboard shortcut.
 - [xdotool](https://github.com/jordansissel/xdotool) - keyboard automation on X11
 - [wtype](https://github.com/atx/wtype) - keyboard automation on Wayland
 - [libnotify](https://gitlab.gnome.org/GNOME/libnotify) - desktop notifications (optional)
+
+## Setup
+
+1. Get your API key from [OpenAI Platform](https://platform.openai.com).
+
+2. Create the config directory and add your API key:
+
+```bash
+mkdir -p ~/.config/supertinywhisper
+echo "your-api-key-here" > ~/.config/supertinywhisper/openai_api_key
+```
