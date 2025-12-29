@@ -8,4 +8,5 @@ A super tiny speech-to-text tool written in a few lines of Bash that records you
 - [curl](https://curl.se) - openai api calling
 - [jq](https://jqlang.github.io/jq) - json processing
 - [xdotool](https://github.com/jordansissel/xdotool) - keyboard automation on X11
+- [wtype](https://github.com/atx/wtype) - keyboard automation on Wayland
 - [libnotify](https://gitlab.gnome.org/GNOME/libnotify) - desktop notifications (optional)

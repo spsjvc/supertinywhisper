@@ -13,7 +13,11 @@ notify() {
 }
 
 text_type() {
-    xdotool type --delay 1 "$1"
+    if [ -n "$WAYLAND_DISPLAY" ]; then
+        wtype -d 1 "$1"
+    else
+        xdotool type --delay 1 "$1"
+    fi
 }
 
 read_lockfile_value() {
