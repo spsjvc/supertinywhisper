@@ -1,6 +1,14 @@
 # supertinywhisper
 
-A super tiny speech-to-text tool written in a few lines of Bash that records your audio, transcribes it, and types the resulting transcription directly into the active application. It's designed to be bound to a keyboard shortcut for seamless usage, and is built with common tools you likely already have installed on your computer.
+A super tiny speech-to-text tool for Linux.
+
+It's written in a few lines of Bash, and built with common tools you likely already have installed on your computer.
+
+## How it Works
+
+**supertinywhisper** records your audio using [ffmpeg](https://ffmpeg.org) (with settings optimized for speech), transcribes it using the [OpenAI API](https://platform.openai.com/docs/api-reference/audio/createTranscription), and types the resulting transcription directly into your active application. It works both on X11 ([xdotool](https://github.com/jordansissel/xdotool)) and Wayland ([wtype](https://github.com/atx/wtype)).
+
+For best experience, bind it to a global keyboard shortcut.
 
 ## Requirements
 
