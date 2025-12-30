@@ -66,7 +66,7 @@ fi
 
 # Check for a lockfile (recording in progress)
 if [ ! -f "$FILE_LOCK" ]; then
-    recording_started_at=$(date +%s%3N)
+    recording_started_at=$(date +%s)
     recording_file="/tmp/supertinywhisper_recording_${recording_started_at}.ogg"
 
     # Start recording with options optimized for speech:
@@ -97,8 +97,7 @@ recording_stop
 
 recording_file=$(read_lockfile_value "recording_file")
 recording_started_at=$(read_lockfile_value "recording_started_at")
-recording_duration_ms=$(($(date +%s%3N) - recording_started_at))
-recording_duration_s=$((recording_duration_ms / 1000))
+recording_duration_s=$(($(date +%s) - recording_started_at))
 
 notify "Recording... Transcribing ~${recording_duration_s}s..."
 api_response=$(transcribe_audio_file "$recording_file")
