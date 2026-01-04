@@ -55,6 +55,18 @@ supertinywhisper | xclip -selection clipboard
 supertinywhisper | wl-copy
 ```
 
+### Specify language
+
+Specify the language using the [ISO 639 code](https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes). This improves model accuracy and latency. Defaults to English.
+
+```bash
+# Spanish
+supertinywhisper --language es | wtype -
+
+# French
+supertinywhisper --language fr | wtype -
+```
+
 ### Cancel
 
 ```bash

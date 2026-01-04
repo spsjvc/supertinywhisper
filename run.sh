@@ -39,8 +39,9 @@ transcribe_audio_file() {
     echo $(curl -s https://api.openai.com/v1/audio/transcriptions \
         -H "Authorization: Bearer $OPENAI_API_KEY" \
         -H "Content-Type: multipart/form-data" \
+        -F model="gpt-4o-mini-transcribe-2025-12-15" \
         -F file="@$1" \
-        -F model="gpt-4o-mini-transcribe-2025-12-15"
+        -F language="$2"
     )
 }
 
@@ -51,9 +52,28 @@ if [ ! -f "$FILE_OPENAI_API_KEY" ]; then
 fi
 
 OPENAI_API_KEY=$(cat "$FILE_OPENAI_API_KEY")
+# Default to English
+LANGUAGE="en"
+
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --cancel)
+            CANCEL=true
+            shift
+            ;;
+        --language)
+            LANGUAGE="$2"
+            shift 2
+            ;;
+        *)
+            shift
+            ;;
+    esac
+done
 
 # Handle cancellation
-if [ "$1" = "--cancel" ]; then
+if [ "$CANCEL" = true ]; then
     if [ -f "$FILE_LOCK" ]; then
         notify "Recording... Cancelled."
 
@@ -100,7 +120,7 @@ recording_started_at=$(read_lockfile_value "recording_started_at")
 recording_duration_s=$(($(date +%s) - recording_started_at))
 
 notify "Recording... Transcribing ~${recording_duration_s}s..."
-api_response=$(transcribe_audio_file "$recording_file")
+api_response=$(transcribe_audio_file "$recording_file" "$LANGUAGE")
 notify "Recording... Transcribing ~${recording_duration_s}s... Done."
 
 recording_clean_up
